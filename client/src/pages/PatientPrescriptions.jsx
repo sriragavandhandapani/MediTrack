@@ -11,7 +11,6 @@ function PatientPrescriptions() {
     const [prescriptions, setPrescriptions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedPrescription, setSelectedPrescription] = useState(null);
-    const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
 
     useEffect(() => {
         if (!user) {
@@ -36,7 +35,6 @@ function PatientPrescriptions() {
 
     const openPrintModal = (prescription) => {
         setSelectedPrescription(prescription);
-        setIsPrintModalOpen(true);
     };
 
     const handlePrint = () => {

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { User, Mail, Phone, Camera, Save, CheckCircle, Shield, AlertCircle, MapPin, Edit2, X, ArrowLeft } from 'lucide-react';
+// eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
@@ -61,7 +62,7 @@ const Profile = () => {
                 try {
                     const errorData = JSON.parse(text);
                     errorMessage = errorData.message || errorMessage;
-                } catch (e) {
+                } catch {
                     errorMessage = text || errorMessage;
                 }
                 toast.error(errorMessage);

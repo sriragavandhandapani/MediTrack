@@ -38,26 +38,35 @@ function Reports() {
     const [categoryFilter, setCategoryFilter] = useState('All');
     const [previewFile, setPreviewFile] = useState(null);
     const [editingReport, setEditingReport] = useState(null);
+    const [selectedFileName, setSelectedFileName] = useState('');
 
-    const [patientName, setPatientName] = useState('');
     const [category, setCategory] = useState('General');
     const [notes, setNotes] = useState('');
     const [visibility, setVisibility] = useState('Private');
 
-    useEffect(() => {
-        if (!user) navigate('/login');
-        fetchReports();
-    }, [user, navigate]);
-
-    const fetchReports = async () => {
+    const fetchReports = useCallback(async () => {
         try {
             const res = await axios.get('http://localhost:5000/api/reports', { withCredentials: true });
             setReports(res.data);
-        } catch (err) {
-            console.error(err);
+        } catch (error) {
+            console.error(error);
             toast.error('Failed to load reports');
         }
-    };
+    }, []);
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    useEffect(() => {
+        if (!user) navigate('/login');
+        fetchReports();
+    }, [user, navigate, fetchReports]);
+
+    const handleNotifyDoctor = useCallback(async () => {
+        try {
+            toast.success('Doctor notified (Simulated)');
+        } catch {
+            toast.error('Failed to notify');
+        }
+    }, []);
 
     const handleUpload = useCallback(async (e) => {
         e.preventDefault();
@@ -88,25 +97,17 @@ function Reports() {
             setNotes('');
             setVisibility('Private');
             fileInputRef.current.value = '';
+            setSelectedFileName('');
 
             if (window.confirm('Report Uploaded! Do you want to notify your assigned doctor?')) {
                 handleNotifyDoctor();
             }
 
-        } catch (err) {
-            dispatch({ type: 'ERROR', payload: err.response?.data?.message || 'Upload failed' });
+        } catch (error) {
+            dispatch({ type: 'ERROR', payload: error.response?.data?.message || 'Upload failed' });
             toast.error('Upload failed');
         }
-    }, [category, notes, visibility, user]);
-
-    const handleNotifyDoctor = async () => {
-        try {
-
-            toast.success('Doctor notified (Simulated)');
-        } catch (e) {
-            toast.error('Failed to notify');
-        }
-    };
+    }, [category, notes, visibility, user, fetchReports, handleNotifyDoctor]);
 
     const handleDelete = async (id) => {
         if (!window.confirm('Are you sure you want to delete this report?')) return;
@@ -114,8 +115,8 @@ function Reports() {
             await axios.delete(`http://localhost:5000/api/reports/${id}`, { withCredentials: true });
             setReports(reports.filter(r => r._id !== id));
             toast.success('Report deleted');
-        } catch (err) {
-            console.error(err);
+        } catch (error) {
+            console.error(error);
             toast.error('Failed to delete report');
         }
     };
@@ -132,7 +133,7 @@ function Reports() {
             setReports(reports.map(r => r._id === editingReport._id ? res.data : r));
             toast.success('Report updated');
             setEditingReport(null);
-        } catch (err) {
+        } catch {
             toast.error('Failed to update report');
         }
     };
@@ -164,7 +165,7 @@ function Reports() {
     return (
         <div className="min-h-screen bg-gray-50 p-6">
             <div className="max-w-7xl mx-auto">
-                {}
+                {/* Header Section */}
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                     <div className="flex items-center gap-4">
                         <button
@@ -186,7 +187,7 @@ function Reports() {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {}
+                    {/* Left Column - Upload Form */}
                     <div className="lg:col-span-1">
                         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 sticky top-24">
                             <h2 className="text-lg font-bold mb-4 flex items-center text-gray-700">
@@ -239,11 +240,16 @@ function Reports() {
                                             type="file"
                                             ref={fileInputRef}
                                             className="hidden"
-                                            onChange={() => dispatch({ type: 'RESET' })}
+                                            onChange={(e) => {
+                                                if (e.target.files?.length) {
+                                                    setSelectedFileName(e.target.files[0].name);
+                                                    dispatch({ type: 'RESET' });
+                                                }
+                                            }}
                                         />
                                     </div>
-                                    {fileInputRef.current?.files[0] && (
-                                        <p className="text-sm text-green-600 mt-2 text-center truncate">Selected: {fileInputRef.current.files[0].name}</p>
+                                    {selectedFileName && (
+                                        <p className="text-sm text-green-600 mt-2 text-center truncate">Selected: {selectedFileName}</p>
                                     )}
                                 </div>
 
@@ -263,7 +269,7 @@ function Reports() {
                         </div>
                     </div>
 
-                    {}
+                    {/* Right Column - Reports List */}
                     <div className="lg:col-span-2 space-y-6">
                         <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex flex-col sm:flex-row gap-4 items-center justify-between">
                             <div className="relative w-full sm:w-64">

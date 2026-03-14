@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { LayoutDashboard, FileText, MessageSquare, User, Activity, Clock, Shield, Pill } from 'lucide-react';
+// eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
 
 const UserHome = () => {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import axios from 'axios';
@@ -19,6 +19,36 @@ function PatientDetails() {
     const [chartMetric, setChartMetric] = useState('Heart Rate');
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 8;
+
+
+
+    const fetchPatientData = useCallback(async () => {
+        try {
+            const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/users/${id}`, { withCredentials: true });
+            setPatientData(res.data);
+        } catch {
+            console.error("Failed to fetch patient details");
+            setPatientData({ name: 'Patient View', email: 'loading...' });
+        }
+    }, [id]);
+
+    const fetchHealthHistory = useCallback(async () => {
+        try {
+            const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/health/patient/${id}`, { withCredentials: true });
+
+            const sortedHistory = res.data.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            setHealthHistory(sortedHistory);
+            setCurrentPage(1);
+
+            const latest = {};
+            sortedHistory.forEach(item => {
+                if (!latest[item.type]) latest[item.type] = item;
+            });
+            setLatestVitals(latest);
+        } catch {
+            console.error("Failed to fetch health history");
+        }
+    }, [id]);
 
     useEffect(() => {
         if (!user || (user.role !== 'doctor' && user.role !== 'admin')) {
@@ -47,35 +77,7 @@ function PatientDetails() {
         return () => {
             socket.off('healthUpdate');
         };
-    }, [id, user, navigate]);
-
-    const fetchPatientData = async () => {
-        try {
-            const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/users/${id}`, { withCredentials: true });
-            setPatientData(res.data);
-        } catch (err) {
-            console.error("Failed to fetch patient details");
-            setPatientData({ name: 'Patient View', email: 'loading...' });
-        }
-    };
-
-    const fetchHealthHistory = async () => {
-        try {
-            const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/health/patient/${id}`, { withCredentials: true });
-
-            const sortedHistory = res.data.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-            setHealthHistory(sortedHistory);
-            setCurrentPage(1);
-
-            const latest = {};
-            sortedHistory.forEach(item => {
-                if (!latest[item.type]) latest[item.type] = item;
-            });
-            setLatestVitals(latest);
-        } catch (err) {
-            console.error("Failed to fetch health history");
-        }
-    };
+    }, [id, user, navigate, fetchPatientData, fetchHealthHistory]);
 
     const chartData = healthHistory
         .filter(r => r.type === chartMetric)

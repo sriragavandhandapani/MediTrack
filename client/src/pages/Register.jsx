@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
 import { register, reset } from '../features/auth/authSlice';
 import { User, Mail, Lock, CheckCircle, Eye, EyeOff, Stethoscope } from 'lucide-react';
+// eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
 import { Toaster, toast } from 'react-hot-toast';
 import AuthLayout from '../components/AuthLayout';
@@ -17,7 +18,7 @@ function Register() {
     });
     const [showPassword, setShowPassword] = useState(false);
 
-    const { name, email, password, role } = formData;
+    const { name, email, password } = formData;
 
     const navigate = useNavigate();
     const dispatch = useDispatch();
